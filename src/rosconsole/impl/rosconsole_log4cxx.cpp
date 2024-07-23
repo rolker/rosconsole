@@ -182,15 +182,11 @@ void initialize()
 void print(void* handle, ::ros::console::Level level, const char* str, const char* file, const char* function, int line)
 {
   log4cxx::Logger* logger  = (log4cxx::Logger*)handle;
-#if (LOG4CXX_VERSION_MAJOR > 0) || ( (LOG4CXX_VERSION_MAJOR == 0) && (LOG4CXX_VERSION_MINOR > 11) )
-  std::string filename(file);
-  std::string short_filename = filename.substr(filename.find_last_of("/\\") + 1);
   try
   {
-    logger->forcedLog(g_level_lookup[level], str, log4cxx::spi::LocationInfo(file, short_filename.c_str(), function, line));
+#ifdef LOG4CXX_VERSION_MAJOR
+    logger->forcedLog(g_level_lookup[level], str, log4cxx::spi::LocationInfo(file, log4cxx::spi::LocationInfo::calcShortFileName(file), function, line));
 #else
-  try
-  {
     logger->forcedLog(g_level_lookup[level], str, log4cxx::spi::LocationInfo(file, function, line));
 #endif
   }
@@ -402,7 +398,6 @@ void shutdown()
   //
   // See https://code.ros.org/trac/ros/ticket/3271
   //
-  // static_cast<log4cxx::spi::LoggerRepositoryPtr>(log4cxx::Logger::getRootLogger()->getLoggerRepository())->shutdown();
   shutdown_logger_repository(log4cxx::Logger::getRootLogger()->getLoggerRepository());
 }
 
